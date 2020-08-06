@@ -9,3 +9,9 @@ Calculating DNA bending properties by using coarse-grained model
 
 # Deactivate
 `conda deactivate`
+
+# Install bentdna package
+`pip install -e .`
+
+# Upgrade package
+`pip install -e . --upgrade`

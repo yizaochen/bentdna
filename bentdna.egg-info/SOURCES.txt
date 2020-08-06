@@ -1,0 +1,10 @@
+README.md
+setup.py
+bentdna/__init__.py
+bentdna/curve_pl.py
+bentdna/shapefourier.py
+bentdna.egg-info/PKG-INFO
+bentdna.egg-info/SOURCES.txt
+bentdna.egg-info/dependency_links.txt
+bentdna.egg-info/requires.txt
+bentdna.egg-info/top_level.txt
