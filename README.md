@@ -2,10 +2,10 @@
 Calculating DNA bending properties by using coarse-grained model
 
 # Create a virtual environment
-conda create --name bentdna python=3.8
+`conda create --name bentdna python=3.8`
 
 # Activate virtual environment
-conda activate bentdna
+`conda activate bentdna`
 
 # Deactivate
-conda deactivate
+`conda deactivate`
