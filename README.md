@@ -15,3 +15,6 @@ Calculating DNA bending properties by using coarse-grained model
 
 # Upgrade package
 `pip install -e . --upgrade`
+
+# Use CURVES+ to find helical axis
+notebooks/curve_interface.ipynb
