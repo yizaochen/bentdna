@@ -1,7 +1,11 @@
 README.md
 setup.py
+bentdna/PDB.py
 bentdna/__init__.py
+bentdna/atom.py
 bentdna/curve_pl.py
+bentdna/find_haxis_curve.py
+bentdna/miscell.py
 bentdna/shapefourier.py
 bentdna.egg-info/PKG-INFO
 bentdna.egg-info/SOURCES.txt

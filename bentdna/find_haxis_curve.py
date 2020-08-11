@@ -22,7 +22,8 @@ class PrepareHelix:
         'ctct_21mer': 10000, 'tgtg_21mer': 10000, '500mm': 10000,
         'only_cation': 10000, 'mgcl2_150mm': 10000 }
 
-    def __init__(self, host, n_bp):
+    def __init__(self, findhelix_folder, host, n_bp):
+        self.findhelix_folder = findhelix_folder
         self.host = host
         self.n_bp = n_bp
         self.workfolder = path.join(self.findhelix_folder, host)
@@ -107,6 +108,7 @@ class FindHelixAgent:
         self.pdb_all_folder = path.join(rootfolder, 'pdbs_allatoms')
         self.workfolder = path.join(rootfolder, f'curve_workdir_{self.start_frame}_{self.stop_frame}')
         self.pdb_haxis_folder = path.join(rootfolder, 'pdbs_haxis')
+        self.pdb_h_smooth_folder = path.join(rootfolder, 'haxis_smooth')
 
         self.__check_and_make_folders()
         self.__print_frame()
@@ -119,10 +121,19 @@ class FindHelixAgent:
         lis_name = 'r+bdna'
         for frame_id in range(self.start_frame, self.stop_frame):
             single_pdb = path.join(self.pdb_all_folder, f'{frame_id}.pdb')
-            agent = CurvePlusAgent(single_pdb, self.workfolder, self.n_bp, lis_name, frame_id, self.pdb_haxis_folder)
+            agent = CurvePlusAgent(single_pdb, self.workfolder, self.n_bp, lis_name, frame_id, self.pdb_haxis_folder, self.pdb_h_smooth_folder)
             agent.clean_files()
             agent.execute_curve_plus()
             agent.extract_haxis_to_pdb()
+
+    def curveplus_find_smooth_haxis(self):
+        lis_name = 'r+bdna'
+        for frame_id in range(self.start_frame, self.stop_frame):
+            single_pdb = path.join(self.pdb_all_folder, f'{frame_id}.pdb')
+            agent = CurvePlusAgent(single_pdb, self.workfolder, self.n_bp, lis_name, frame_id, self.pdb_haxis_folder, self.pdb_h_smooth_folder)
+            agent.clean_files()
+            agent.execute_curve_plus()
+            agent.get_smooth_haxis()
 
     def __get_stop_frame(self, stop_frame):
         if stop_frame is None:
@@ -134,18 +145,19 @@ class FindHelixAgent:
         print(f'There are {self.n_frames} frames.')
 
     def __check_and_make_folders(self):
-        for folder in [self.pdb_all_folder, self.workfolder, self.pdb_haxis_folder]:
+        for folder in [self.pdb_all_folder, self.workfolder, self.pdb_haxis_folder, self.pdb_h_smooth_folder]:
             check_dir_exist_and_make(folder)
 
 
 class CurvePlusAgent:
-    def __init__(self, pdb_in, workfolder, n_bp, lis_name, frame_id, pdb_haxis_folder):
+    def __init__(self, pdb_in, workfolder, n_bp, lis_name, frame_id, pdb_haxis_folder, pdb_h_smooth_folder):
         self.pdb_in = pdb_in
         self.n_bp = n_bp
         self.lis_name = lis_name
         self.workfolder = workfolder
         self.frame_id = frame_id
         self.pdb_haxis_folder = pdb_haxis_folder
+        self.pdb_h_smooth_folder = pdb_h_smooth_folder
 
     def clean_files(self):
         pathname = path.join(self.workfolder, f'{self.lis_name}*')
@@ -167,6 +179,12 @@ class CurvePlusAgent:
         pdb_out = path.join(self.pdb_haxis_folder, f'haxis.{self.frame_id}.pdb')
         agent = ExtractHaxisAgent(self.n_bp, axis_pdb, pdb_out)
         agent.write_pdb()
+
+    def get_smooth_haxis(self):
+        axis_pdb = path.join(self.workfolder, f'{self.lis_name}_X.pdb')
+        pdb_out = path.join(self.pdb_h_smooth_folder, f'haxis.smooth.{self.frame_id}.pdb')
+        copyfile(axis_pdb, pdb_out)
+        print(f'cp {axis_pdb} {pdb_out}')
 
     def __get_exectue_curve_plus_cmd(self):
         curve = '/home/yizaochen/opt/curve+/Cur+'
