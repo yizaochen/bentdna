@@ -20,9 +20,9 @@ Calculating DNA bending properties by using coarse-grained model
 /home/yizaochen/miniconda3/envs/bentdna/lib/python3.8/site-packages
 
 # Protocol
-### Part 1: $\theta(s)$ plot
+### Part 1: θ(s) plot
 `notebooks/theta_s_plot.ipynb`
-### Part 1: Use CURVES+ to find helical axis
+### Part 2: Fourier Decomposition
+`notebooks/fourier_analysis.ipynb`
+### Part 3: Use CURVES+ to find helical axis
 `notebooks/curve_interface.ipynb`
-### Part 2: Find tangent along the curve
-`notebooks/find_tangent.ipynb`
