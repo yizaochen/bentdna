@@ -9,15 +9,22 @@ class ShapeAgent:
         'yizao_model': 24, 'pnas_16mer': 16, 'gcgc_21mer': 21,
         'ctct_21mer': 21, 'tgtg_21mer': 21, '500mm': 16,
         'only_cation': 16, 'mgcl2_150mm': 16 }
+        
+    start_end = {
+        'atat_21mer': (3, 17), 'g_tract_21mer': (3, 17), 
+        'a_tract_21mer': (3, 17), 'yizao_model': (3, 20), 
+        'pnas_16mer': (3, 12), 'gcgc_21mer': (3, 17),
+        'ctct_21mer': (3, 17), 'tgtg_21mer': (3, 17), '500mm': (3, 12),
+        'only_cation': (3, 12), 'mgcl2_150mm': (3, 12)}
 
-    def __init__(self, workfolder, host, bp_id_first, bp_id_last):
+    def __init__(self, workfolder, host):
         self.host = host
         self.rootfolder = path.join(workfolder, host)
         self.df_folder = path.join(self.rootfolder, 'l_theta')
         self.an_folder = path.join(self.rootfolder, 'an_folder')
         self.n_bead = self.d_n_bp[host]
-        self.bp_id_first = bp_id_first
-        self.bp_id_last = bp_id_last
+        self.bp_id_first = self.start_end[host][0]
+        self.bp_id_last = self.start_end[host][1]
         self.df_name = path.join(self.df_folder, f'l_modulus_theta_{self.n_bead}_beads.csv')
         self.df = None
 
@@ -26,11 +33,11 @@ class ShapeAgent:
     def read_l_modulus_theta(self):
         self.df =  pd.read_csv(self.df_name)
 
-    def make_df_an(self, n_begin, n_end):
+    def make_df_an(self, n_begin, n_end, last_frame):
         columns = list(range(n_begin, n_end+1))
         d_result = self.__initialize_an_d_result(n_begin, n_end)
 
-        for frame_id in range(1, 10001):
+        for frame_id in range(1, last_frame+1):
             df_filter = self.get_filter_df(frame_id)
             for n in columns:
                 d_result[n].append(self.get_an(n, df_filter))
