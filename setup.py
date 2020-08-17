@@ -9,6 +9,7 @@ setup(name='bentdna',
       license='MIT',
       install_requires=[
           'pandas',
+          'numpy',
           'MDAnalysis'
       ]
       )

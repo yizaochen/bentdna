@@ -1,6 +1,7 @@
 from os import path
 import pandas as pd
-
+import numpy as np
+from bentdna.miscell import check_dir_exist_and_make
 
 class ShapeAgent:
     d_n_bp = {
@@ -9,13 +10,98 @@ class ShapeAgent:
         'ctct_21mer': 21, 'tgtg_21mer': 21, '500mm': 16,
         'only_cation': 16, 'mgcl2_150mm': 16 }
 
-    def __init__(self, workfolder, host):
+    def __init__(self, workfolder, host, bp_id_first, bp_id_last):
         self.host = host
         self.rootfolder = path.join(workfolder, host)
         self.df_folder = path.join(self.rootfolder, 'l_theta')
+        self.an_folder = path.join(self.rootfolder, 'an_folder')
         self.n_bead = self.d_n_bp[host]
+        self.bp_id_first = bp_id_first
+        self.bp_id_last = bp_id_last
         self.df_name = path.join(self.df_folder, f'l_modulus_theta_{self.n_bead}_beads.csv')
         self.df = None
+
+        self.__check_and_make_folders()
         
     def read_l_modulus_theta(self):
         self.df =  pd.read_csv(self.df_name)
+
+    def make_df_an(self, n_begin, n_end):
+        columns = list(range(n_begin, n_end+1))
+        d_result = self.__initialize_an_d_result(n_begin, n_end)
+
+        for frame_id in range(1, 10001):
+            df_filter = self.get_filter_df(frame_id)
+            for n in columns:
+                d_result[n].append(self.get_an(n, df_filter))
+
+        df_an = pd.DataFrame(d_result)
+        df_an = df_an[columns]
+        f_out = path.join(self.an_folder, f'an_{n_begin}_{n_end}.csv')
+        df_an.to_csv(f_out, index=False)
+        return df_an
+
+    def read_df_an(self, n_begin, n_end):
+        f_in = path.join(self.an_folder, f'an_{n_begin}_{n_end}.csv')
+        df_an = pd.read_csv(f_in)
+        return df_an
+
+    def get_filter_df(self, frame_id):
+        mask = (self.df['i'] == self.bp_id_first)
+        df0 = self.df[mask]
+        mask = (df0['Frame_ID'] == frame_id)
+        df1 = df0[mask]
+        mask = (df1['j'].between(self.bp_id_first+1, self.bp_id_last))
+        df2 = df1[mask]
+        return df2
+
+    def get_an(self, n, df_filter):
+        L = self.__get_L(df_filter)
+        delta_s_list = self.__get_delta_s_list(df_filter)
+        theta_list = self.__get_theta_list(df_filter)
+        s_mid_list = self.__get_s_mid_list(df_filter)
+        scale_factor = np.sqrt(2/L)
+        summation = 0
+        for delta_s, theta, s_mid in zip(delta_s_list, theta_list, s_mid_list):
+            in_cos_term = n * np.pi / L
+            cos_term = np.cos(in_cos_term * s_mid)
+            summation += delta_s * theta * cos_term
+        return scale_factor * summation
+
+    def __initialize_an_d_result(self, n_begin, n_end):
+        d_result = dict()
+        for n in range(n_begin, n_end+1):
+            d_result[n] = list()
+        return d_result
+
+    def __get_L(self, df):
+        return df['|l_j|'].sum()
+        
+    def __get_theta_list(self, df):
+        return df['theta'].tolist()
+        
+    def __get_delta_s_list(self, df):
+        return df['|l_j|'].tolist()
+        
+    def __get_s_mid_list(self, df):
+        s_mid_list = np.zeros(df.shape[0])
+        delta_s_list = df['|l_j|'].tolist()
+        s_total = 0
+        for i, delta_s in enumerate(delta_s_list):
+            s_mid = s_total + delta_s/2
+            s_total += delta_s
+            s_mid_list[i] = s_mid
+        return s_mid_list
+        
+    def __get_s_list(self, df):
+        s_list = np.zeros(df.shape[0])
+        delta_s_list = df['|l_j|'].tolist()
+        s_total = 0
+        for i, delta_s in enumerate(delta_s_list):
+            s_total += delta_s
+            s_list[i] = s_total
+        return s_list
+
+    def __check_and_make_folders(self):
+        for folder in [self.an_folder]:
+            check_dir_exist_and_make(folder)
