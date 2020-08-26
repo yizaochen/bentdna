@@ -26,3 +26,10 @@ Calculating DNA bending properties by using coarse-grained model
 `notebooks/fourier_analysis.ipynb`
 ### Part 3: Use CURVES+ to find helical axis
 `notebooks/curve_interface.ipynb`
+
+# For plotly
+
+### Install Node.js
+`conda install -c conda-forge nodejs`
+### JupyterLab
+`jupyter labextension install jupyterlab-plotly@4.9.0`

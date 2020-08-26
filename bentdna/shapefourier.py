@@ -80,6 +80,81 @@ class ShapeAgent:
             summation += delta_s * 0.1 * theta * cos_term
         return scale_factor * summation
 
+    def get_an_simplified(self, L, scale_factor, n, df_filter):
+        delta_s_list = self.__get_delta_s_list(df_filter)
+        theta_list = self.__get_theta_list(df_filter)
+        s_mid_list = self.__get_s_mid_list(df_filter)
+        summation = 0
+        for delta_s, theta, s_mid in zip(delta_s_list, theta_list, s_mid_list):
+            in_cos_term = n * np.pi / L
+            cos_term = np.cos(in_cos_term * s_mid)
+            summation += delta_s * 0.1 * theta * cos_term
+        return scale_factor * summation
+
+    def get_mode_shape_list(self, n, df_filter):
+        L = self.__get_L(df_filter) # unit: angstrom
+        L_nm = L / 10 # unit: nm
+        s_list = np.array(self.__get_s_list(df_filter))
+        scale_factor = np.sqrt(2/L_nm)
+        in_cos_term = (n * np.pi * s_list) / L
+        an = self.get_an(n, df_filter)
+        cos_list = an * scale_factor * np.cos(in_cos_term)
+        return s_list, cos_list
+
+    def get_cos_list(self, s_list, L, scale_factor, n, df_filter):
+        in_cos_term = (n * np.pi * s_list) / L
+        an = self.get_an_simplified(L, scale_factor, n, df_filter)
+        cos_list = an * scale_factor * np.cos(in_cos_term)
+        return cos_list
+
+    def get_cos_list_an(self, s_list, L, scale_factor, n, df_filter):
+        in_cos_term = (n * np.pi * s_list) / L
+        an = self.get_an_simplified(L, scale_factor, n, df_filter)
+        cos_list = an * scale_factor * np.cos(in_cos_term)
+        return cos_list, an
+
+    def get_slist_thetalist(self, frame_id):
+        df_filter = self.get_filter_df(frame_id)
+        s_list = self.__get_s_list(df_filter)
+        theta_list = self.__get_theta_list(df_filter)
+        s_list = [0] + list(s_list)
+        theta_list = [0] + theta_list
+        return s_list, theta_list
+
+    def get_approximate_theta(self, frame_id, n_begin, n_end):
+        df_filter = self.get_filter_df(frame_id)
+        L = self.__get_L(df_filter) # unit: angstrom
+        L_nm = L / 10 # unit: nm
+        scale_factor = np.sqrt(2/L_nm)
+        s_list = self.__get_s_list(df_filter)
+        appr_theta_list = np.zeros(len(s_list))
+        for n in range(n_begin, n_end+1):
+            cos_list = self.get_cos_list(s_list, L, scale_factor, n, df_filter)
+            if n == 0:
+                appr_theta_list += cos_list / 2
+            else:
+                appr_theta_list += cos_list
+        s_list = [0] + list(s_list)
+        appr_theta_list = [0] + list(appr_theta_list)
+        return s_list, appr_theta_list
+
+    def get_approximate_theta_singlemode(self, frame_id, n_select):
+        df_filter = self.get_filter_df(frame_id)
+        L = self.__get_L(df_filter) # unit: angstrom
+        L_nm = L / 10 # unit: nm
+        scale_factor = np.sqrt(2/L_nm)
+        s_list = self.__get_s_list(df_filter)
+        appr_theta_list = np.zeros(len(s_list))
+        for n in [0, n_select]:
+            cos_list, an = self.get_cos_list_an(s_list, L, scale_factor, n, df_filter)
+            if n == 0:
+                appr_theta_list += cos_list / 2
+            else:
+                appr_theta_list += cos_list
+        s_list = [0] + list(s_list)
+        appr_theta_list = [0] + list(appr_theta_list)
+        return s_list, appr_theta_list, an
+
     def __set_bp_id_first(self, bp_id_first):
         if bp_id_first is None:
             return self.start_end[self.host][0]

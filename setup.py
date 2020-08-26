@@ -10,6 +10,7 @@ setup(name='bentdna',
       install_requires=[
           'pandas',
           'numpy',
-          'MDAnalysis'
+          'MDAnalysis',
+          'plotly'
       ]
       )
