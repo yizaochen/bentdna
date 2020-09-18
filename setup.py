@@ -11,6 +11,7 @@ setup(name='bentdna',
           'pandas',
           'numpy',
           'MDAnalysis',
-          'plotly'
+          'plotly',
+          'sklearn'
       ]
       )

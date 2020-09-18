@@ -2,3 +2,4 @@ pandas
 numpy
 MDAnalysis
 plotly
+sklearn

@@ -37,6 +37,23 @@ class ShapeAgent:
     def read_l_modulus_theta(self):
         self.df =  pd.read_csv(self.df_name)
 
+    def get_L_of_frameid(self, frame_id):
+        df_filter = self.get_filter_df(frame_id)
+        L = self.__get_L(df_filter) # unit: angstrom
+        return L
+
+    def get_smid_and_interpolation_theta(self, frame_id):
+        df_filter = self.get_filter_df(frame_id)
+        theta_list = [0]
+        theta_list += self.__get_theta_list(df_filter)
+        n_theta = len(theta_list)
+        s_mid_list = self.__get_s_mid_list(df_filter)
+        interpolation_list = list()
+        for i in range(n_theta-1):
+            theta_inter = (theta_list[i] + theta_list[i+1]) / 2
+            interpolation_list.append(theta_inter)
+        return s_mid_list, interpolation_list
+
     def make_df_an(self, n_begin, n_end, last_frame):
         columns = list(range(n_begin, n_end+1))
         d_result = self.__initialize_an_d_result(n_begin, n_end)
