@@ -7,6 +7,7 @@ bentdna/curve_pl.py
 bentdna/find_haxis_curve.py
 bentdna/fourier_animation.py
 bentdna/miscell.py
+bentdna/regression.py
 bentdna/shapefourier.py
 bentdna.egg-info/PKG-INFO
 bentdna.egg-info/SOURCES.txt
