@@ -26,6 +26,12 @@ Calculating DNA bending properties by using coarse-grained model
 `notebooks/fourier_analysis.ipynb`
 ### Part 3: Use CURVES+ to find helical axis
 `notebooks/curve_interface.ipynb`
+### Part 3(Optional): Process a lot of structures(like trajectory)
+`python_scripts/initialize_allsystems.py`
+`python_scripts/curve_batch.py`
+
+### Part 4: Make Dataframe for $|l_{i}|$, $|l_{j}|$, $\theta_{i,j}$ of all frames
+`notebooks/make_dataframe_from_curve.ipynb`
 
 # For plotly
 
