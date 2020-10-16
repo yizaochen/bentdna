@@ -13,14 +13,14 @@ def copy_file(f1, f2):
 
 
 class PrepareHelix:
-    findhelix_folder = '/home/yizaochen/codes/dna_rna/length_effect/find_helical_axis'
     all_folder = '/home/yizaochen/codes/dna_rna/all_systems'
     type_na = 'bdna+bdna'
     d_lastframe = {
         'atat_21mer': 10000, 'g_tract_21mer': 10000, 'a_tract_21mer': 10000,
         'yizao_model': 20000, 'pnas_16mer': 10000, 'gcgc_21mer': 10000,
         'ctct_21mer': 10000, 'tgtg_21mer': 10000, '500mm': 10000,
-        'only_cation': 10000, 'mgcl2_150mm': 10000 }
+        'only_cation': 10000, 'mgcl2_150mm': 10000, 
+        'cg_13_meth1': 10000 }
 
     def __init__(self, findhelix_folder, host, n_bp):
         self.findhelix_folder = findhelix_folder
@@ -187,7 +187,7 @@ class CurvePlusAgent:
         print(f'cp {axis_pdb} {pdb_out}')
 
     def __get_exectue_curve_plus_cmd(self):
-        curve = '/home/yizaochen/opt/curve+/Cur+'
+        curve = '/home/yizaochen/opt/curves+/Cur+'
         inp_end_txt = self.__get_inp_end()
         n1, n2, n3, n4 = self.__get_four_numbers()
         cmd1 = f'{curve} <<!\n'
@@ -199,7 +199,7 @@ class CurvePlusAgent:
         return cmd1 + cmd2 + cmd3 + cmd4 + cmd5 + cmd6
 
     def __get_inp_end(self):
-        curve_folder = '/home/yizaochen/opt/curve+/standard'
+        curve_folder = '/home/yizaochen/opt/curves+/standard'
         lis = path.join(self.workfolder, self.lis_name)
         return f'file={self.pdb_in},\n  lis={lis},\n  lib={curve_folder},'
     
