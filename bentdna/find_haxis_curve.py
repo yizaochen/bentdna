@@ -12,6 +12,86 @@ def copy_file(f1, f2):
     print(f'cp {f1} {f2}')
 
 
+class AvgAgent:
+    all_folder = '/home/yizaochen/codes/dna_rna/all_systems'
+    type_na = 'bdna+bdna'
+    n_bp = 21
+
+    def __init__(self, findhelix_folder, host):
+        self.host = host
+        self.host_folder = path.join(self.all_folder, host)
+        self.na_folder = path.join(self.host_folder, 'bdna+bdna')
+        self.all_input_folder = path.join(self.na_folder, 'input')
+        self.heavy_folder = path.join(self.all_input_folder, 'heavyatoms')
+
+        self.avg_crd = path.join(self.heavy_folder, f'{self.type_na}.nohydrogen.avg.crd')
+        self.avg_pdb = path.join(self.heavy_folder, f'{self.type_na}.nohydrogen.avg.pdb')
+        self.avg_pdb_backup = path.join(self.heavy_folder, f'{self.type_na}.nohydrogen.avg.backup.pdb')
+
+        self.findhelix_folder = findhelix_folder
+        self.workfolder = path.join(self.findhelix_folder, host)
+        self.avg_folder = path.join(self.workfolder, 'avg_structure')
+        self.input_folder = path.join(self.workfolder, 'input')
+        self.pdb_modi = path.join(self.input_folder, 'bdna_modi_avg.pdb')
+
+        self.haxis_pdb = path.join(self.avg_folder, 'haxis.avg.pdb')
+        self.smooth_pdb = path.join(self.avg_folder, 'haxis.smooth.avg.pdb')
+
+        self.__check_and_make_folders()
+
+    def convert_crd_to_pdb(self):
+        u = mda.Universe(self.avg_crd, self.avg_crd)
+        with mda.Writer(self.avg_pdb, bonds=None, n_atoms=u.atoms.n_atoms) as PDBOUT:
+            PDBOUT.write(u.atoms)
+        print(f'Convert {self.avg_crd} to {self.avg_pdb}')
+        print('Check by:')
+        print(f'vmd -pdb {self.avg_pdb}')
+
+    def backup_avg_pdb(self):
+        copy_file(self.avg_pdb, self.avg_pdb_backup)
+
+    def cpback_avg_pdb(self):
+        # This is used in rescue!!!
+        print('When rescuing, the command is:')
+        print(f'cp {self.avg_pdb_backup} {self.avg_pdb}')
+
+    def change_resid_to_modi(self):
+        reader = PDBReader(self.avg_pdb, segid_exist=True)
+        atgs = reader.get_atomgroup()
+
+        for atom in atgs:
+            if atom.segid == 'B':
+                atom.resid += self.n_bp
+                
+        writer = PDBWriter(self.pdb_modi, atgs)
+        writer.write_pdb()
+
+    def curveplus_find_haxis(self):
+        lis_name = 'r+bdna'
+        frame_id = 'avg'
+        agent = CurvePlusAgent(self.pdb_modi, self.workfolder, self.n_bp, lis_name, frame_id, self.avg_folder, self.avg_folder)
+        agent.clean_files()
+        agent.execute_curve_plus()
+        agent.extract_haxis_to_pdb()
+        agent.get_smooth_haxis()
+
+    def vmd_check(self):
+        cmd = 'cd /home/yizaochen/codes/bentdna'
+        print(cmd)
+        cmd = f'vmd -pdb {self.avg_pdb}'
+        print(cmd)
+        cmd = f'mol new {self.haxis_pdb} type pdb'
+        print(cmd)
+        cmd = f'mol new {self.smooth_pdb} type pdb'
+        print(cmd)
+        cmd = f'source ./tcl/draw_aa_haxis.tcl'
+        print(cmd)
+
+    def __check_and_make_folders(self):
+        for folder in [self.input_folder, self.avg_folder]:
+            check_dir_exist_and_make(folder)
+
+
 class PrepareHelix:
     all_folder = '/home/yizaochen/codes/dna_rna/all_systems'
     type_na = 'bdna+bdna'

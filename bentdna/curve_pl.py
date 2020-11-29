@@ -6,10 +6,73 @@ from scipy import stats
 import pandas as pd
 import matplotlib.pyplot as plt
 import MDAnalysis as mda
-from miscell import get_modulus_angle_between_two_vectors, check_dir_exist_and_make
+from bentdna.miscell import get_modulus_angle_between_two_vectors, check_dir_exist_and_make
 
 findh_folder = '/home/yizaochen/codes/dna_rna/length_effect/find_helical_axis'
 
+class AvgLmodulusTheta:
+    d_n_bp = {
+        'atat_21mer': 21, 'g_tract_21mer': 21, 'a_tract_21mer': 21,
+        'yizao_model': 24, 'pnas_16mer': 16, 'gcgc_21mer': 21,
+        'ctct_21mer': 21, 'tgtg_21mer': 21, '500mm': 16,
+        'only_cation': 16, 'mgcl2_150mm': 16 }
+
+    def __init__(self, host):
+        self.host = host
+        self.rootfolder = path.join(findh_folder, host)
+        self.output_folder = path.join(self.rootfolder, 'output')
+        self.avg_folder = path.join(self.rootfolder, 'avg_structure')
+        self.df_folder = path.join(self.rootfolder, 'l_theta')
+
+        self.pdb_in = path.join(self.avg_folder, 'haxis.avg.pdb')
+        self.u = mda.Universe(self.pdb_in, self.pdb_in)
+
+        self.n_bead = self.d_n_bp[host]
+        self.n_bead_minus_1 = self.n_bead - 1
+
+        self.columns = ['Frame_ID', 'i', 'j', '|l_i|', '|l_j|', 'theta']
+        self.d_result = self.__get_d()
+        self.df_name = path.join(self.df_folder, f'l_modulus_theta_{self.n_bead}_beads_avg_structure.csv')
+        self.df = None
+
+    def read_l_modulus_theta(self):
+        self.df =  pd.read_csv(self.df_name)
+
+    def make_l_modulus_theta(self):
+        pair_list = self.__get_pair_list()
+        for ts in self.u.trajectory:
+            vectors = self.__get_vectors()
+            for i, j in pair_list:
+                self.__append_to_d_result(vectors, i, j, ts)
+        self.df = self.__covert_d_to_df()
+        self.df.to_csv(self.df_name, index=False)
+        print(f'make {self.df_name}')
+
+    def __get_d(self):  
+        d = dict()
+        for key in self.columns:
+            d[key] = list()
+        return d
+
+    def __get_pair_list(self):
+        return list(combinations(range(self.n_bead_minus_1), 2))
+
+    def __get_vectors(self):
+        points = self.u.atoms.positions
+        return [points[i + 1] - points[i] for i in range(self.n_bead_minus_1)]
+
+    def __append_to_d_result(self, vectors, i, j, ts):
+        vi_modulus, vj_modulus, theta = get_modulus_angle_between_two_vectors(vectors[i], vectors[j])
+        self.d_result['Frame_ID'].append(ts.frame)
+        self.d_result['i'].append(i)
+        self.d_result['j'].append(j)
+        self.d_result['|l_i|'].append(vi_modulus)
+        self.d_result['|l_j|'].append(vj_modulus)
+        self.d_result['theta'].append(theta)
+    
+    def __covert_d_to_df(self):
+        df = pd.DataFrame(self.d_result)
+        return df[self.columns]
 
 class LmodulusTheta:
     d_n_bp = {

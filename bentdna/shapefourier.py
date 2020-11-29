@@ -221,3 +221,8 @@ class ShapeAgent:
     def __check_and_make_folders(self):
         for folder in [self.an_folder]:
             check_dir_exist_and_make(folder)
+
+class AvgShapeAgent(ShapeAgent):
+    def __init__(self, workfolder, host, bp_id_first=None, bp_id_last=None):
+        super().__init__(workfolder, host, bp_id_first=None, bp_id_last=None)
+        self.df_name = path.join(self.df_folder, f'l_modulus_theta_{self.n_bead}_beads_avg_structure.csv')
