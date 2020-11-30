@@ -1,6 +1,7 @@
 from os import path, rename
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from bentdna.miscell import check_dir_exist_and_make
 
 class ShapeAgent:
@@ -226,3 +227,109 @@ class AvgShapeAgent(ShapeAgent):
     def __init__(self, workfolder, host, bp_id_first=None, bp_id_last=None):
         super().__init__(workfolder, host, bp_id_first=None, bp_id_last=None)
         self.df_name = path.join(self.df_folder, f'l_modulus_theta_{self.n_bead}_beads_avg_structure.csv')
+
+class AvgShapeSixPlots:
+    hosts = ['a_tract_21mer', 'atat_21mer', 'ctct_21mer',
+             'g_tract_21mer', 'gcgc_21mer', 'tgtg_21mer']
+    d_colors = {'a_tract_21mer': 'blue', 'atat_21mer': 'orange', 'ctct_21mer': 'green',
+                'g_tract_21mer': 'red', 'gcgc_21mer': 'magenta', 'tgtg_21mer': 'cyan'}
+    abbr_hosts = {'a_tract_21mer': 'A-tract', 'ctct_21mer': 'CTCT', 'gcgc_21mer': 'GCGC',
+                  'g_tract_21mer': 'G-tract', 'atat_21mer': 'ATAT', 'tgtg_21mer': 'TGTG'} 
+    workfolder = '/home/yizaochen/codes/dna_rna/length_effect/find_helical_axis'
+    nrows = 2
+    ncols = 3
+    start_frame = 1
+    end_frame = 10000
+    n_bp = 15
+
+    def __init__(self, figsize):
+        self.figsize = figsize
+        self.df_name = path.join(self.workfolder, 'average_theta0_six_systems.csv')
+        self.lbfz = 12
+        self.lgfz = 12
+        self.ticksize = 10
+
+    def get_theta0_r18_radian(self):
+        df = self.read_dataframe()
+        for host in self.hosts:
+            value = df[host].iloc[14]
+            print(f'{host}: {value:.3f}')
+
+    def get_theta0_r18_degree(self):
+        df = self.read_dataframe()
+        for host in self.hosts:
+            value = np.rad2deg(df[host].iloc[14])
+            print(f'{host}: {value:.1f}')
+
+    def make_dataframe(self):
+        d_result = dict()
+        for host in self.hosts:
+            temp_container = np.zeros((self.end_frame, self.n_bp))
+            d_result[host] = np.zeros(self.n_bp)
+            s_agent = ShapeAgent(self.workfolder, host)
+            s_agent.read_l_modulus_theta()
+            for frameid in range(self.start_frame, self.end_frame+1):
+                data = s_agent.get_slist_thetalist(frameid)
+                temp_container[frameid-1,:] = data[1]
+            for bp_id in range(self.n_bp):
+                d_result[host][bp_id] = temp_container[:, bp_id].mean()
+        df = pd.DataFrame(d_result)
+        df.to_csv(self.df_name)
+        print(f'Write Dataframe to {self.df_name}')
+        return df
+    
+    def read_dataframe(self):
+        df = pd.read_csv(self.df_name)
+        return df
+
+    def plot_main(self):
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=self.figsize)
+        df = self.read_dataframe()
+        for host in self.hosts:
+            ylist = df[host]
+            xlist = range(len(ylist))
+            ax.plot(xlist, ylist, linestyle='--', marker='.', linewidth=1, 
+                    markersize=4, label=self.abbr_hosts[host], color=self.d_colors[host])
+        ylabel = self.get_ylabel()
+        ax.set_ylabel(ylabel, fontsize=self.lbfz)
+        ax.legend(frameon=False, fontsize=self.lgfz)
+        xticks, xticklabels = self.get_xticks_xticklabels()
+        ax.set_xticks(xticks)
+        ax.set_xticklabels(xticklabels)
+        ax.tick_params(axis='both', labelsize=self.ticksize)
+        return fig, ax
+
+    def plot_six_plots(self):
+        fig, axes = plt.subplots(nrows=self.nrows, ncols=self.ncols, figsize=self.figsize)
+        d_axes = self.get_d_axes(axes)
+        df = self.read_dataframe()
+        for host in self.hosts:
+            ax = d_axes[host]
+            ylist = df[host]
+            xlist = range(len(ylist))
+            ax.plot(xlist, ylist, '--.', color='blue')
+            ax.set_ylabel(r"$\theta(s)$ (radian)")
+            #ax.set_title()
+        return fig, d_axes
+
+    def get_ylabel(self):
+        return r'$\theta^{0}(\mathbf{r}_i)$  (radian)'
+
+    def get_xticks_xticklabels(self):
+        xticks = range(self.n_bp)
+        xticklabels = list()
+        start_idx = 4
+        for bp_id in xticks:
+            idx = start_idx + bp_id
+            xticklabels.append(r'$\mathbf{r}_{' + f'{idx}' +r'}$')
+        return xticks, xticklabels
+
+    def get_d_axes(self, axes):
+        d_axes = dict()
+        idx_host = 0
+        for row_id in range(self.nrows):
+            for col_id in range(self.ncols):
+                host = self.hosts[idx_host]
+                d_axes[host] = axes[row_id, col_id]
+                idx_host += 1
+        return d_axes
