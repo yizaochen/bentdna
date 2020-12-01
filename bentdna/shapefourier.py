@@ -333,3 +333,46 @@ class AvgShapeSixPlots:
                 d_axes[host] = axes[row_id, col_id]
                 idx_host += 1
         return d_axes
+
+class LpSixPlots:
+    hosts = ['a_tract_21mer', 'atat_21mer', 'ctct_21mer',
+             'g_tract_21mer', 'gcgc_21mer', 'tgtg_21mer']
+    d_colors = {'a_tract_21mer': 'blue', 'atat_21mer': 'orange', 'ctct_21mer': 'green',
+                'g_tract_21mer': 'red', 'gcgc_21mer': 'magenta', 'tgtg_21mer': 'cyan'}
+    abbr_hosts = {'a_tract_21mer': 'A-tract', 'ctct_21mer': 'CTCT', 'gcgc_21mer': 'GCGC',
+                  'g_tract_21mer': 'G-tract', 'atat_21mer': 'ATAT', 'tgtg_21mer': 'TGTG'} 
+    workfolder = '/home/yizaochen/codes/dna_rna/length_effect/find_helical_axis'
+    n_begin = 2
+    n_end = 6
+    n_bp = 15
+
+    def __init__(self, figsize):
+        self.figsize = figsize
+        self.lbfz = 12
+        self.lgfz = 12
+        self.ticksize = 10
+
+    def plot_main(self):
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=self.figsize)
+        for host in self.hosts:
+            nlist, Lplist = self.get_nlist_Lplist(host)
+            ax.plot(nlist, Lplist, linestyle='solid', marker='o', linewidth=1, 
+                    markersize=4, color=self.d_colors[host], label=self.abbr_hosts[host])
+        ax.set_ylabel(r'$L_p$ (nm)', fontsize=self.lbfz)
+        ax.set_xlabel('Mode number, n', fontsize=self.lbfz)
+        ax.legend(frameon=False, fontsize=self.lgfz)
+        ax.set_xticks(nlist)
+        ax.tick_params(axis='both', labelsize=self.ticksize)
+        return fig, ax
+
+    def get_nlist_Lplist(self, host):
+        s_agent = ShapeAgent(self.workfolder, host)
+        df_an = s_agent.read_df_an(0, 9)
+        L = s_agent.get_appr_L()
+        n_list = list(range(self.n_begin, self.n_end+1))
+        Lp_list = list()
+        for n in n_list:
+            var_an = df_an[str(n)].var()
+            Lp = np.square(L) / (np.square(n) * np.square(np.pi) * var_an)
+            Lp_list.append(Lp)
+        return n_list, Lp_list
