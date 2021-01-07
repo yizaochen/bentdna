@@ -78,8 +78,9 @@ class LmodulusTheta:
     d_n_bp = {
         'atat_21mer': 21, 'g_tract_21mer': 21, 'a_tract_21mer': 21,
         'yizao_model': 24, 'pnas_16mer': 16, 'gcgc_21mer': 21,
-        'ctct_21mer': 21, 'tgtg_21mer': 21, 'tat_21mer': 21, '500mm': 16,
-        'only_cation': 16, 'mgcl2_150mm': 16 }
+        'ctct_21mer': 21, 'tgtg_21mer': 21, 'tat_21mer': 21,
+        'tat_1_21mer': 21, 'tat_2_21mer': 21, 'tat_3_21mer': 21,
+        '500mm': 16, 'only_cation': 16, 'mgcl2_150mm': 16 }
 
     def __init__(self, host):
         self.host = host

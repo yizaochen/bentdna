@@ -7,7 +7,8 @@ from bentdna.miscell import check_dir_exist_and_make
 class ShapeAgent:
     d_n_bp = {
         'atat_21mer': 21, 'g_tract_21mer': 21, 'a_tract_21mer': 21,
-        'yizao_model': 24, 'pnas_16mer': 16, 'gcgc_21mer': 21, 'tat_21mer': 21,
+        'yizao_model': 24, 'pnas_16mer': 16, 'gcgc_21mer': 21, 
+        'tat_21mer': 21, 'tat_1_21mer': 21, 'tat_2_21mer': 21, 'tat_3_21mer': 21,
         'ctct_21mer': 21, 'tgtg_21mer': 21, '500mm': 16,
         'only_cation': 16, 'mgcl2_150mm': 16 }
         
@@ -15,8 +16,9 @@ class ShapeAgent:
         'atat_21mer': (3, 17), 'g_tract_21mer': (3, 17), 
         'a_tract_21mer': (3, 17), 'yizao_model': (3, 20), 
         'pnas_16mer': (3, 12), 'gcgc_21mer': (3, 17),
-        'ctct_21mer': (3, 17), 'tgtg_21mer': (3, 17), 'tat_21mer': (3, 17), '500mm': (3, 12),
-        'only_cation': (3, 12), 'mgcl2_150mm': (3, 12)}
+        'ctct_21mer': (3, 17), 'tgtg_21mer': (3, 17),
+        'tat_21mer': (3, 17), 'tat_1_21mer': (3, 17), 'tat_2_21mer': (3, 17), 'tat_3_21mer': (3, 17),
+        '500mm': (3, 12), 'only_cation': (3, 12), 'mgcl2_150mm': (3, 12)}
 
     def __init__(self, workfolder, host, bp_id_first=None, bp_id_last=None):
         self.host = host
@@ -232,9 +234,12 @@ class AvgShapeSixPlots:
     hosts = ['a_tract_21mer', 'atat_21mer', 'ctct_21mer',
              'g_tract_21mer', 'gcgc_21mer', 'tgtg_21mer', 'tat_21mer']
     d_colors = {'a_tract_21mer': 'blue', 'atat_21mer': 'orange', 'ctct_21mer': 'green',
-                'g_tract_21mer': 'red', 'gcgc_21mer': 'magenta', 'tgtg_21mer': 'cyan', 'tat_21mer': 'purple'}
+                'g_tract_21mer': 'red', 'gcgc_21mer': 'magenta', 'tgtg_21mer': 'cyan', 
+                'tat_21mer': 'purple', 'tat_1_21mer': 'magenta', 'tat_2_21mer': 'green',
+                'tat_3_21mer': 'cyan'}
     abbr_hosts = {'a_tract_21mer': 'A-tract', 'ctct_21mer': 'CTCT', 'gcgc_21mer': 'GCGC',
-                  'g_tract_21mer': 'G-tract', 'atat_21mer': 'ATAT', 'tgtg_21mer': 'TGTG', 'tat_21mer':r'$A_6$TAT$A_6$'} 
+                  'g_tract_21mer': 'G-tract', 'atat_21mer': 'ATAT', 'tgtg_21mer': 'TGTG', 
+                  'tat_21mer': 'TAT-0', 'tat_1_21mer': 'TAT-1', 'tat_2_21mer': 'TAT-2', 'tat_3_21mer': 'TAT-3'} 
     workfolder = '/home/yizaochen/codes/dna_rna/length_effect/find_helical_axis'
     nrows = 2
     ncols = 3
@@ -283,15 +288,49 @@ class AvgShapeSixPlots:
         df.to_csv(self.df_name)
         print(f'Write Dataframe to {self.df_name}')
         return df
-    
+
     def read_dataframe(self):
         df = pd.read_csv(self.df_name)
+        return df
+
+    def make_dataframe_sele_host(self, sele_host):
+        d_result = dict()
+        for host in [sele_host]:
+            temp_container = np.zeros((self.end_frame, self.n_bp))
+            d_result[host] = np.zeros(self.n_bp)
+            s_agent = ShapeAgent(self.workfolder, host)
+            s_agent.read_l_modulus_theta()
+            for frameid in range(self.start_frame, self.end_frame+1):
+                data = s_agent.get_slist_thetalist(frameid)
+                temp_container[frameid-1,:] = data[1]
+            for bp_id in range(self.n_bp):
+                d_result[host][bp_id] = temp_container[:, bp_id].mean()
+        df = pd.DataFrame(d_result)
         return df
 
     def plot_main(self):
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=self.figsize)
         df = self.read_dataframe()
         for host in self.hosts:
+            ylist = df[host]
+            xlist = range(len(ylist))
+            ax.plot(xlist, np.rad2deg(ylist), linestyle='--', marker='.', linewidth=1, 
+                    markersize=4, label=self.abbr_hosts[host], color=self.d_colors[host])
+        ylabel = self.get_ylabel()
+        ax.axvline(11, color='grey', alpha=0.6)
+        ax.set_ylabel(ylabel, fontsize=self.lbfz)
+        ax.legend(frameon=False, fontsize=self.lgfz)
+        xticks, xticklabels = self.get_xticks_xticklabels()
+        ax.set_xticks(xticks)
+        ax.set_xticklabels(xticklabels)
+        ax.tick_params(axis='both', labelsize=self.ticksize)
+        return fig, ax
+
+    def plot_a_junction(self):
+        groups = ['a_tract_21mer', 'tat_21mer', 'tat_1_21mer','tat_2_21mer', 'tat_3_21mer', 'atat_21mer']
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=self.figsize)
+        df = self.read_dataframe()
+        for host in groups:
             ylist = df[host]
             xlist = range(len(ylist))
             ax.plot(xlist, np.rad2deg(ylist), linestyle='--', marker='.', linewidth=1, 

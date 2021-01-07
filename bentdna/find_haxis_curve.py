@@ -99,6 +99,7 @@ class PrepareHelix:
         'atat_21mer': 10000, 'g_tract_21mer': 10000, 'a_tract_21mer': 10000,
         'yizao_model': 20000, 'pnas_16mer': 10000, 'gcgc_21mer': 10000,
         'ctct_21mer': 10000, 'tgtg_21mer': 10000, 'tat_21mer':10000,
+        'tat_1_21mer':10000, 'tat_2_21mer':10000, 'tat_3_21mer':10000,
         '500mm': 10000, 'only_cation': 10000, 'mgcl2_150mm': 10000, 
         'cg_13_meth1': 10000 }
 
