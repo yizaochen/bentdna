@@ -267,6 +267,10 @@ class CurvePlusAgent:
         copyfile(axis_pdb, pdb_out)
         print(f'cp {axis_pdb} {pdb_out}')
 
+    def print_exectue_curve_plus_cmd(self):
+        cmd = self.__get_exectue_curve_plus_cmd()
+        print(cmd)
+
     def __get_exectue_curve_plus_cmd(self):
         curve = '/home/yizaochen/opt/curves+/Cur+'
         inp_end_txt = self.__get_inp_end()
@@ -341,4 +345,55 @@ class ExtractHaxisAgent:
             return list(atg_sele.positions[0])
         else:
             return list(atg_sele.positions[-1])
+
+
+class VMDShow(AvgAgent):
+    tcl_folder = '/home/yizaochen/codes/bentdna/tcl'
+
+    def show_central_vector(self):
+        print(f'vmd -cor {self.avg_crd}')
+        print('In tkconsole:')
+        print(f'mol new {self.haxis_pdb} type pdb')
+        lines = list()
+        lines += self.get_source_arrow_tcl_line()
+        lines += ['graphics 0 color 27'] 
+        lines += self.get_draw_vectors_lines()
+        tcl_out = path.join(self.tcl_folder, 'draw_central_vectors.tcl')
+        self.write_tcl_out(tcl_out, lines)
+
+    def get_source_arrow_tcl_line(self):
+        arrow_tcl = path.join(self.tcl_folder, 'arrow.tcl')
+        return [f'source {arrow_tcl}']
+
+    def get_draw_vectors_lines(self):
+        reader = PDBReader(self.haxis_pdb, segid_exist=False)
+        lines = list()
+        atgs = reader.get_atomgroup()
+        for resid_i in range(4, 18):
+            resid_j = resid_i + 1
+            atom_i = atgs[resid_i-1]
+            atom_j = atgs[resid_j-1]
+            lines.append(self.get_arrow_middle_line(atom_i, atom_j))
+        return lines
+
+    def get_arrow_middle_line(self, atom1, atom2):
+        str_0 = 'vmd_draw_arrow 0 {'
+        str_1 = f'{atom1.x:.3f} {atom1.y:.3f} {atom1.z:.3f}'
+        str_2 = '} {'
+        str_3 = f'{atom2.x:.3f} {atom2.y:.3f} {atom2.z:.3f}'
+        str_4 = '}'
+        return str_0 + str_1 + str_2 + str_3 + str_4
+
+    def write_tcl_out(self, tcl_out, container):
+        f = open(tcl_out, 'w')
+        for line in container:
+            f.write(line)
+            f.write('\n')
+        f.close()
+        print(f'source {tcl_out}')
+
+
+
+
+
             

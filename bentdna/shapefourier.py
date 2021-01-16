@@ -311,13 +311,15 @@ class AvgShapeSixPlots:
     def plot_main(self):
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=self.figsize)
         df = self.read_dataframe()
-        for host in self.hosts:
+        hosts = ['a_tract_21mer', 'atat_21mer', 'ctct_21mer',
+                 'g_tract_21mer', 'gcgc_21mer', 'tgtg_21mer']
+        for host in hosts:
             ylist = df[host]
             xlist = range(len(ylist))
             ax.plot(xlist, np.rad2deg(ylist), linestyle='--', marker='.', linewidth=1, 
                     markersize=4, label=self.abbr_hosts[host], color=self.d_colors[host])
         ylabel = self.get_ylabel()
-        ax.axvline(11, color='grey', alpha=0.6)
+        #ax.axvline(11, color='grey', alpha=0.6)
         ax.set_ylabel(ylabel, fontsize=self.lbfz)
         ax.legend(frameon=False, fontsize=self.lgfz)
         xticks, xticklabels = self.get_xticks_xticklabels()
@@ -422,3 +424,60 @@ class LpSixPlots:
             Lp = np.square(L) / (np.square(n) * np.square(np.pi) * var_an)
             Lp_list.append(Lp)
         return n_list, Lp_list
+
+
+class DecomposeDraw:
+    xlabel_fz = 14
+
+    def __init__(self, workfolder, host):
+        self.workfolder = workfolder
+        self.host = host
+        self.s_agent = ShapeAgent(workfolder, host)
+
+        self.s_agent.read_l_modulus_theta()
+
+    def plot_decompose_by_frame_id(self, frame_id, figsize):
+        fig, axes = plt.subplots(nrows=2, ncols=3, figsize=figsize)
+        self.ax_plot_original(axes[0,0], frame_id)
+        xlim = axes[0,0].get_xlim()
+        self.ax_plot_decompose_by_n(axes[0,1], frame_id, 2, xlim)
+        self.ax_plot_decompose_by_n(axes[0,2], frame_id, 3, xlim)
+        self.ax_plot_decompose_by_n(axes[1,0], frame_id, 4, xlim)
+        self.ax_plot_decompose_by_n(axes[1,1], frame_id, 5, xlim)
+        self.ax_plot_decompose_by_n(axes[1,2], frame_id, 6, xlim)
+        return fig, axes
+
+    def ax_plot_original(self, ax, frame_id):
+        s_list, theta_list = self.s_agent.get_slist_thetalist(frame_id)
+        ylist, yticklabels = self.get_ylist_yticklabels(s_list)
+        ax.plot(np.rad2deg(theta_list), ylist, '-o', color='red')
+        ax.set_ylim(ax.get_ylim()[::-1])
+        ax.set_yticks(ylist)
+        ax.set_yticklabels(yticklabels)
+        ax.set_xlabel(r"$\theta(\mathbf{r}_{i})$ (degree)", fontsize=self.xlabel_fz)
+        title = f'ATAT, The {frame_id}' + r'$^{\mathrm{th}}$ Frame'
+        ax.set_title(title)
+
+    def ax_plot_decompose_by_n(self, ax, frame_id, n, xlim):
+        s_list, appr_theta_list = self.s_agent.get_approximate_theta(frame_id, 0, n)
+        ylist, yticklabels = self.get_ylist_yticklabels(s_list)
+        ax.plot(np.rad2deg(appr_theta_list), ylist, '-o', color='blue')
+        ax.set_ylim(ax.get_ylim()[::-1])
+        ax.set_yticks(ylist)
+        ax.set_yticklabels(yticklabels)
+        ax.set_xlabel(self.get_xlabel(n), fontsize=self.xlabel_fz)
+        ax.set_xlim(xlim)
+        title = f'$n={n}$'
+        ax.set_title(title)
+
+    def get_xlabel(self, n):
+        return r'$\sqrt{\frac{2}{L}}a_{' + f'{n}' + r'}\cos{(\frac{' + f'{n}' + r'\pi s}{L})}$'
+
+    def get_ylist_yticklabels(self, s_list):
+        ylist = range(len(s_list))
+        yticklabels = list()
+        start_idx = 4
+        for bp_id in ylist:
+            idx = start_idx + bp_id
+            yticklabels.append(r'$\mathbf{r}_{' + f'{idx}' +r'}$')
+        return ylist, yticklabels
