@@ -406,9 +406,11 @@ class LpSixPlots:
             nlist, Lplist = self.get_nlist_Lplist(host)
             ax.plot(nlist, Lplist, linestyle='solid', marker='o', linewidth=1, 
                     markersize=4, color=self.d_colors[host], label=self.abbr_hosts[host])
+        ax.axvline(3, color='grey', linestyle='--', alpha=0.3)
+        ax.axhline(50, color='lime', alpha=0.5, label='Experimental $L_p$')
         ax.set_ylabel(r'$L_p$ (nm)', fontsize=self.lbfz)
         ax.set_xlabel('Mode number, n', fontsize=self.lbfz)
-        ax.legend(frameon=False, fontsize=self.lgfz)
+        ax.legend(frameon=False, fontsize=self.lgfz, ncol=2)
         ax.set_xticks(nlist)
         ax.tick_params(axis='both', labelsize=self.ticksize)
         return fig, ax
@@ -481,3 +483,77 @@ class DecomposeDraw:
             idx = start_idx + bp_id
             yticklabels.append(r'$\mathbf{r}_{' + f'{idx}' +r'}$')
         return ylist, yticklabels
+
+class HistogramAn:
+
+    n_begin = 0
+    n_end = 9
+    hosts = ['a_tract_21mer', 'atat_21mer', 'ctct_21mer',
+             'g_tract_21mer', 'gcgc_21mer', 'tgtg_21mer']
+    d_colors = {'a_tract_21mer': 'blue', 'atat_21mer': 'orange', 'ctct_21mer': 'green',
+                'g_tract_21mer': 'red', 'gcgc_21mer': 'magenta', 'tgtg_21mer': 'cyan'}
+    abbr_hosts = {'a_tract_21mer': 'A-tract', 'ctct_21mer': 'CTCT', 'gcgc_21mer': 'GCGC',
+                  'g_tract_21mer': 'G-tract', 'atat_21mer': 'ATAT', 'tgtg_21mer': 'TGTG'}
+    n_rows = 2
+    n_cols = 3
+
+    def __init__(self, workfolder):
+        self.workfolder = workfolder
+
+        self.d_agents = self.get_d_agents()
+        self.d_df = self.get_d_df()
+
+    def plot_main(self, figsize):
+        n = 3
+        fig, axes = plt.subplots(nrows=self.n_rows, ncols=self.n_cols, figsize=figsize, sharex=True, sharey=True)
+        d_axes = self.get_d_axes_by_host(axes)
+        for host in self.hosts:
+            ax = d_axes[host]
+            data = self.d_df[host][str(n)]
+            mean = np.mean(data)
+            std = np.std(data)
+            ax.hist(data, color=self.d_colors[host], density=True, bins=100, label=self.abbr_hosts[host])
+            ax.axvline(mean, color='black', alpha=0.5)
+            self.plot_assist_x(ax)
+            self.plot_assist_y(ax)
+            ax.set_title(self.get_title(host, mean, std), fontsize=10)
+            if host in ['g_tract_21mer', 'gcgc_21mer', 'tgtg_21mer']:
+                ax.set_xlabel(r'$a_3$')
+            if host in ['a_tract_21mer', 'g_tract_21mer']:
+                ax.set_ylabel('Probability')
+        return fig, d_axes
+
+    def get_title(self, host, mean, std):
+        return f'{self.abbr_hosts[host]}\n' + r'$\mu=' + f'{mean:.3f}' + r'~~\sigma=' + f'{std:.3f}' + r'$'
+
+    def plot_assist_x(self, ax):
+        xvalues = np.arange(-0.4, 0.4, 0.1)
+        for xvalue in xvalues:
+            ax.axvline(xvalue, color='grey', alpha=0.1)
+
+    def plot_assist_y(self, ax):
+        yvalues = range(1, 8)
+        for yvalue in yvalues:
+            ax.axhline(yvalue, color='grey', alpha=0.1)
+
+    def get_d_axes_by_host(self, axes):
+        d_axes = dict()
+        host_id = 0
+        for row_id in range(self.n_rows):
+            for col_id in range(self.n_cols):
+                host = self.hosts[host_id]
+                d_axes[host] = axes[row_id, col_id]
+                host_id += 1
+        return d_axes
+
+    def get_d_agents(self):
+        d_agents = dict()
+        for host in self.hosts:
+            d_agents[host] = ShapeAgent(self.workfolder, host)
+        return d_agents
+
+    def get_d_df(self):
+        d_df = dict()
+        for host in self.hosts:
+            d_df[host] = self.d_agents[host].read_df_an(self.n_begin, self.n_end)
+        return d_df
