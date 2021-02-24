@@ -383,12 +383,12 @@ class AvgShapeSixPlots:
         return d_axes
 
 class LpSixPlots:
-    hosts = ['a_tract_21mer', 'atat_21mer', 'ctct_21mer',
-             'g_tract_21mer', 'gcgc_21mer', 'tgtg_21mer']
-    d_colors = {'a_tract_21mer': 'blue', 'atat_21mer': 'orange', 'ctct_21mer': 'green',
-                'g_tract_21mer': 'red', 'gcgc_21mer': 'magenta', 'tgtg_21mer': 'cyan'}
-    abbr_hosts = {'a_tract_21mer': 'A-tract', 'ctct_21mer': 'CTCT', 'gcgc_21mer': 'GCGC',
-                  'g_tract_21mer': 'G-tract', 'atat_21mer': 'ATAT', 'tgtg_21mer': 'TGTG'} 
+    hosts = ['a_tract_21mer', 'atat_21mer',
+             'g_tract_21mer', 'gcgc_21mer']
+    d_colors = {'a_tract_21mer': 'blue', 'atat_21mer': 'cyan',
+                'g_tract_21mer': 'red', 'gcgc_21mer': 'magenta'}
+    abbr_hosts = {'a_tract_21mer': 'poly(dA:dT)', 'ctct_21mer': 'CTCT', 'gcgc_21mer': 'poly(GC)',
+                  'g_tract_21mer': 'poly(dG:dC)', 'atat_21mer': 'poly(AT)', 'tgtg_21mer': 'TGTG'} 
     workfolder = '/home/yizaochen/codes/dna_rna/length_effect/find_helical_axis'
     n_begin = 2
     n_end = 6
@@ -406,11 +406,11 @@ class LpSixPlots:
             nlist, Lplist = self.get_nlist_Lplist(host)
             ax.plot(nlist, Lplist, linestyle='solid', marker='o', linewidth=1, 
                     markersize=4, color=self.d_colors[host], label=self.abbr_hosts[host])
-        ax.axvline(3, color='grey', linestyle='--', alpha=0.3)
-        ax.axhline(50, color='lime', alpha=0.5, label='Experimental $L_p$')
+        #ax.axvline(3, color='grey', linestyle='--', alpha=0.3)
+        ax.axhline(50, color='grey', linestyle='--', alpha=0.5, label='Experimental $L_p$')
         ax.set_ylabel(r'$L_p$ (nm)', fontsize=self.lbfz)
         ax.set_xlabel('Mode number, n', fontsize=self.lbfz)
-        ax.legend(frameon=False, fontsize=self.lgfz, ncol=2)
+        ax.legend(frameon=False, fontsize=self.lgfz, ncol=1)
         ax.set_xticks(nlist)
         ax.tick_params(axis='both', labelsize=self.ticksize)
         return fig, ax
