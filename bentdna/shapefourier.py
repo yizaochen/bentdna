@@ -428,6 +428,40 @@ class LpSixPlots:
         return n_list, Lp_list
 
 
+class LpBarPlots:
+    hosts = ['a_tract_21mer', 'atat_21mer', 'g_tract_21mer', 'gcgc_21mer']
+    d_colors = {'a_tract_21mer': 'blue', 'atat_21mer': 'cyan', 'g_tract_21mer': 'red', 'gcgc_21mer': 'magenta'}
+    abbr_hosts = {'a_tract_21mer': 'poly(dA:dT)', 'gcgc_21mer': 'poly(GC)',
+                  'g_tract_21mer': 'poly(dG:dC)', 'atat_21mer': 'poly(AT)'} 
+    workfolder = '/home/yizaochen/codes/dna_rna/length_effect/find_helical_axis'
+    
+    def __init__(self, figsize):
+        self.figsize = figsize
+        self.lbfz = 14
+        self.lgfz = 12
+        self.ticksize = 12
+
+    def plot_main(self, width, color):
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=self.figsize)
+        xlist = range(len(self.hosts))
+        Lplist = [self.get_Lp(host, 3)  for host in self.hosts]
+        ax.bar(xlist, Lplist, width, color=color)
+        ax.set_ylabel(r'$L_p$ (nm)', fontsize=self.lbfz)
+        ax.set_xticks(xlist)
+        ax.set_xticklabels([self.abbr_hosts[host] for host in self.hosts])
+        ax.axhline(45, color='magenta', linestyle='--')
+        ax.axhline(50, color='magenta', linestyle='--', label='single-molecule experiments\nfor various sequences')
+        ax.tick_params(axis='both', labelsize=self.ticksize)
+        ax.legend(frameon=False, fontsize=self.lgfz)
+        return fig, ax
+
+    def get_Lp(self, host, n_given):
+        s_agent = ShapeAgent(self.workfolder, host)
+        df_an = s_agent.read_df_an(0, 9)
+        L = s_agent.get_appr_L()
+        var_an = df_an[str(n_given)].var()
+        return np.square(L) / (np.square(n_given) * np.square(np.pi) * var_an)
+
 class DecomposeDraw:
     xlabel_fz = 14
 
