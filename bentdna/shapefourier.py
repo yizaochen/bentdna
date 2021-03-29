@@ -2,6 +2,7 @@ from os import path, rename
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 from bentdna.miscell import check_dir_exist_and_make
 
 class ShapeAgent:
@@ -383,8 +384,7 @@ class AvgShapeSixPlots:
         return d_axes
 
 class LpSixPlots:
-    hosts = ['a_tract_21mer', 'atat_21mer',
-             'g_tract_21mer', 'gcgc_21mer']
+    hosts = ['a_tract_21mer', 'g_tract_21mer']
     d_colors = {'a_tract_21mer': 'blue', 'atat_21mer': 'cyan',
                 'g_tract_21mer': 'red', 'gcgc_21mer': 'magenta'}
     abbr_hosts = {'a_tract_21mer': 'poly(dA:dT)', 'ctct_21mer': 'CTCT', 'gcgc_21mer': 'poly(GC)',
@@ -415,6 +415,23 @@ class LpSixPlots:
         ax.tick_params(axis='both', labelsize=self.ticksize)
         return fig, ax
 
+    def plot_main_wavelength_version(self):
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=self.figsize)
+        for host in self.hosts:
+            nlist, Lplist = self.get_nlist_Lplist(host)
+            wavelength_list = self.get_wavelengthlist(nlist)
+            ax.plot(wavelength_list, Lplist, linestyle='solid', marker='o', linewidth=1, 
+                    markersize=4, color=self.d_colors[host], label=self.abbr_hosts[host])
+        #ax.axvline(3, color='grey', linestyle='--', alpha=0.3)
+        ax.axhline(50, color='grey', linestyle='--', alpha=0.5, label='Experimental $L_p$')
+        ax.set_ylabel(r'$L_p$ (nm)', fontsize=self.lbfz)
+        ax.set_xlabel('wavelength (nm)', fontsize=self.lbfz)
+        ax.legend(frameon=False, fontsize=self.lgfz, ncol=1)
+        ax.set_xticks(wavelength_list[::-1])
+        ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax.tick_params(axis='both', labelsize=self.ticksize)
+        return fig, ax
+
     def get_nlist_Lplist(self, host):
         s_agent = ShapeAgent(self.workfolder, host)
         df_an = s_agent.read_df_an(0, 9)
@@ -427,6 +444,9 @@ class LpSixPlots:
             Lp_list.append(Lp)
         return n_list, Lp_list
 
+    def get_wavelengthlist(self, n_list):
+        L_bar = (self.n_bp - 1) * 0.34
+        return [ 2 * L_bar / n for n in n_list]
 
 class LpBarPlots:
     hosts = ['a_tract_21mer', 'atat_21mer', 'g_tract_21mer', 'gcgc_21mer']
