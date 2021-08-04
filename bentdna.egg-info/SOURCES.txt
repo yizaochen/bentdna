@@ -3,6 +3,7 @@ setup.py
 bentdna/PDB.py
 bentdna/__init__.py
 bentdna/atom.py
+bentdna/avg_shape.py
 bentdna/curve_pl.py
 bentdna/find_haxis_curve.py
 bentdna/fourier_animation.py
