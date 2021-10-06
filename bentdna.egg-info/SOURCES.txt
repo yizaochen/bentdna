@@ -7,6 +7,7 @@ bentdna/avg_shape.py
 bentdna/curve_pl.py
 bentdna/find_haxis_curve.py
 bentdna/fourier_animation.py
+bentdna/lp_plots.py
 bentdna/miscell.py
 bentdna/persistence_length.py
 bentdna/regression.py
